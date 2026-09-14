@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: rag-postgres
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: rag_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # persists your ingested data across restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: rag-phoenix
+    ports:
+      - "6006:6006"
+      - "4317:4317"
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama   # model downloads persist here
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: rag-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      phoenix:
+        condition: service_started
+      ollama:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: postgres      # service name, not localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: rag_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      OLLAMA_BASE_URL: http://ollama:11434
+      PHOENIX_ENDPOINT: http://phoenix:6006/v1/traces
+    stdin_open: true   # keeps stdin open so `crewai run`'s {question} prompt works interactively
+    tty: true
+
+volumes:
+  pgdata:
+  ollama_models:

@@ -1,0 +1,150 @@
+{
+  // Display name for this crew
+  "name": "doc_rag_demo",
+
+  // Agents to include — each must have a matching agents/<name>.jsonc file
+  "agents": ["document_retrieval_specialist", "answer_synthesizer"],
+
+  // Task definitions — executed in order for sequential process
+  "tasks": [
+    {
+      // Task identifier
+      "name": "search_the_knowledge_base_task",
+
+      // What the task should accomplish
+      // Use {placeholder} inputs here; crewai run prompts for missing values
+      "description": "Search the knowledge base and retrieve the most relevant passages to answer this question: {question}",
+
+      // Clear definition of what the output should look like
+      "expected_output": "A list of relevant text passages from the documents, each with enough context to be understood on its own",
+
+      // Optional task guardrail(s) validate output before completion
+      // Use "guardrail" for one rule or "guardrails" for many
+      // Failed guardrails retry up to guardrail_max_retries times
+      // "guardrail": "Every factual claim needs context support.",
+      // "guardrails": [
+      //   "Every factual claim must be supported by context.",
+      //   "The answer must match the expected output format."
+      // ],
+      // "guardrail_max_retries": 2,
+
+      // Advanced task options:
+      // Docs: https://docs.crewai.com/concepts/tasks
+      // "type": "ConditionalTask",
+      // "condition": { "python": "my_project.conditions.should_run" },
+      // "output_json": { "python": "my_project.models.ReportOutput" },
+      // "output_pydantic": null,
+      // "response_model": null,
+      // "converter_cls": { "python": "my_project.converters.CustomConverter" },
+      // "markdown": false,
+      // "input_files": { "brief": "data/brief.txt" },
+      // "security_config": {},
+
+      // Which agent handles this task
+      "agent": "document_retrieval_specialist"
+
+      // "tools": [],
+      // "human_input": false,
+      // "async_execution": false
+    }
+,
+    {
+      // Task identifier
+      "name": "using_the_retrieved_passages_task",
+
+      // What the task should accomplish
+      // Use {placeholder} inputs here; crewai run prompts for missing values
+      "description": "Using the retrieved passages, write a clear, accurate answer to the original question: {question}. Only use information found in the retrieved passages \u2014 if they don't contain enough information, say so explicitly.",
+
+      // Clear definition of what the output should look like
+      "expected_output": "A direct, well-written answer to the question, grounded in the retrieved context, with no fabricated information",
+
+      // Optional task guardrail(s) validate output before completion
+      // Use "guardrail" for one rule or "guardrails" for many
+      // Failed guardrails retry up to guardrail_max_retries times
+      // "guardrail": "Every factual claim needs context support.",
+      // "guardrails": [
+      //   "Every factual claim must be supported by context.",
+      //   "The answer must match the expected output format."
+      // ],
+      // "guardrail_max_retries": 2,
+
+      // Advanced task options:
+      // Docs: https://docs.crewai.com/concepts/tasks
+      // "type": "ConditionalTask",
+      // "condition": { "python": "my_project.conditions.should_run" },
+      // "output_json": { "python": "my_project.models.ReportOutput" },
+      // "output_pydantic": null,
+      // "response_model": null,
+      // "converter_cls": { "python": "my_project.converters.CustomConverter" },
+      // "markdown": false,
+      // "input_files": { "brief": "data/brief.txt" },
+      // "security_config": {},
+
+      // Which agent handles this task
+      "agent": "answer_synthesizer",
+
+      // Task outputs used as context
+      "context": ["search_the_knowledge_base_task"]
+
+      // "tools": [],
+      // "human_input": false,
+      // "async_execution": false
+    }
+
+  ],
+
+  // Execution process
+  // "sequential" — tasks run in order, each receiving prior task outputs
+  // "hierarchical" — a manager agent delegates tasks (requires manager_llm)
+  "process": "sequential",
+
+  // Enable verbose logging during execution
+  "verbose": true,
+
+  // Enable crew memory — persists context and learnings across tasks
+  "memory": false,
+
+  // Automatically plan the execution strategy before running tasks
+  // "planning": false,
+
+  "tracing": false,
+
+  // runs setup_tracing() from instrumentation.py once, before the crew starts
+  "before_kickoff_callbacks": [
+    {"python": "instrumentation.setup_tracing"}
+  ],
+
+  
+  // LLM for the planning step (used when planning is true)
+  // "planning_llm": "openai/gpt-4o",
+
+  // LLM for the manager agent (required when process is "hierarchical")
+  // "manager_llm": "openai/gpt-4o",
+
+  // Crew-level LLM fields also accept object form for custom endpoints
+  // "chat_llm": {"model": "llama3", "provider": "ollama", "base_url": "http://localhost:11434"},
+
+  // Advanced crew options:
+  // Docs: https://docs.crewai.com/concepts/crews
+  // For hierarchical crews, manager_agent can reference an agents/<name>.jsonc file
+  // that is not included in the "agents" list.
+  // "manager_agent": "document_retrieval_specialist",
+  // "before_kickoff_callbacks": [{"python": "my_project.callbacks.before_kickoff"}],
+  // "after_kickoff_callbacks": [{"python": "my_project.callbacks.after_kickoff"}],
+  // "function_calling_llm": "openai/gpt-4o-mini",
+  // "max_rpm": null,
+  // "cache": true,
+  // "knowledge_sources": [],
+  // "embedder": {},
+  // "output_log_file": "crew.log",
+  // "stream": false,
+  // "tracing": false,
+  // "security_config": {},
+
+  // Optional runtime input defaults.
+  // Use {placeholder} in agent or task text, for example:
+  // "description": "Research {topic} and write a brief"
+  // `crewai run` prompts for any placeholders missing from this object.
+  "inputs": {}
+}
