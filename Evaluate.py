@@ -10,21 +10,24 @@ model as the judge (via Ollama's OpenAI-compatible endpoint).
 import os
 import sys
 import openpyxl
-from openai import OpenAI
 
 from ragas import evaluate, EvaluationDataset
-from ragas.metrics.collections import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
-from ragas.llms import llm_factory
-from ragas.embeddings import OpenAIEmbeddings
+from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 sys.path.insert(0, ".")
 from tools.retriever_tool import DocumentRetrieverTool
 
 # ---- Config -----------------------------------------------------------
 SPREADSHEET_PATH = "rag_test_questions.xlsx"
-JUDGE_MODEL = "llama3.1:8b"       # ~4.7GB -- fits 16GB RAM, no GPU needed
+JUDGE_MODEL = "gemma3:latest"     # NOTE: no "ollama/" prefix here -- ChatOllama
+                                    # (langchain_ollama) wants the raw Ollama
+                                    # model tag, unlike CrewAI/LiteLLM in crew.py
+                                    # which needs the "ollama/" prefix. Same
+                                    # model, different naming convention per library.
 JUDGE_EMBED_MODEL = "nomic-embed-text"
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434") + "/v1"
 
 # ---- Step 1: Load your filled-in test cases from the spreadsheet -------
 print("Loading test cases from spreadsheet...")
@@ -59,16 +62,25 @@ for r in rows:
 
 dataset = EvaluationDataset.from_list(eval_rows)
 
-# ---- Step 3: Set up the local judge (Ollama via its OpenAI-compatible API) --
-# Ollama serves an OpenAI-compatible endpoint at /v1, so we can use the
-# standard OpenAI client pointed at localhost instead of a real OpenAI key.
-ollama_client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")  # api_key is ignored by Ollama
+# ---- Step 3: Set up the local judge (Ollama via LangChain wrapper) --------
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+if not OLLAMA_BASE_URL.startswith(("http://", "https://")):
+    OLLAMA_BASE_URL = "http://" + OLLAMA_BASE_URL
 
-judge_llm = llm_factory(JUDGE_MODEL, client=ollama_client)
-judge_embeddings = OpenAIEmbeddings(client=ollama_client, model=JUDGE_EMBED_MODEL)
+judge_llm = LangchainLLMWrapper(ChatOllama(model=JUDGE_MODEL, base_url=OLLAMA_BASE_URL, temperature=0))
+judge_embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model=JUDGE_EMBED_MODEL, base_url=OLLAMA_BASE_URL))
 
 # ---- Step 4: Run evaluation ----------------------------------------------
 print("Running RAGAs evaluation (this calls the judge LLM once per metric per row)...")
+from ragas.run_config import RunConfig
+ 
+# Default RunConfig fires up to 16 concurrent requests with a 180s timeout --
+# fine for a hosted API, but a local CPU-only Ollama server can realistically
+# only handle one request at a time, and each can genuinely take a few
+# minutes. max_workers=1 serializes requests (no contention), timeout=600
+# gives each call room to actually finish instead of getting killed early.
+judge_run_config = RunConfig(timeout=600, max_workers=8)
+
 results = evaluate(
     dataset=dataset,
     metrics=[
@@ -77,6 +89,8 @@ results = evaluate(
         ContextPrecision(llm=judge_llm),
         ContextRecall(llm=judge_llm),
     ],
+    run_config=judge_run_config,
+    raise_exceptions=True,
 )
 
 print("\n=== Results (averaged across all test cases) ===")

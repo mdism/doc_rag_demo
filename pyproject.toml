@@ -8,7 +8,9 @@ dependencies = [
     "arize-phoenix-otel>=0.17.1",
     "crewai[tools]>=1.15.21,<2.0.0",
     "docling>=2.126.0",
+    "fastapi[standard]>=0.141.1",
     "langchain-community<0.4.0",
+    "langchain-ollama>=1.1.0",
     "llama-index-core>=0.14.24",
     "llama-index-embeddings-ollama>=0.10.0",
     "llama-index-readers-docling>=0.5.0",
@@ -18,9 +20,11 @@ dependencies = [
     "openinference-instrumentation-litellm>=0.1.43",
     "openpyxl>=3.1.5",
     "psycopg2-binary>=2.9.13",
+    "python-dotenv>=1.2.3",
     "ragas>=0.4.3",
     "sentence-transformers>=6.0.1",
     "torch>=2.14.0",
+    "uvicorn>=0.52.4",
 ]
 
 [build-system]

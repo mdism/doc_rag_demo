@@ -11,21 +11,22 @@ from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.vector_stores.postgres import PGVectorStore
 
 # ---- Config ----------------------------------------------------------
-PDF_PATH = "sample_docs/employee_handbook.pdf"
+PDF_PATH = "./knowledge/employee_handbook.pdf"
 SOURCE_NAME = "employee_handbook.pdf"  # stamped onto every chunk's metadata
-MIN_CHARS = 200
-MAX_CHARS = 1200
-SPLIT_CHUNK_SIZE = 800
-SPLIT_OVERLAP = 100
-EMBED_MODEL = "nomic-embed-text"
-EMBED_DIM = 768
+MIN_CHARS = int(os.get("MIN_CHARS",200))
+MAX_CHARS = int(os.get("MAX_CHARS",1200))
+SPLIT_CHUNK_SIZE = int(os.get("SPLIT_CHUNK_SIZE",800))
+SPLIT_OVERLAP = int(os.get("SPLIT_OVERLAP",100))
+
+EMBED_MODEL = os.getenv("EMBED_MODEL","nomic-embed-text")
+EMBED_DIM = int(os.get("EMBED_DIM",768))
 
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 DB_NAME = os.getenv("POSTGRES_DB", "rag_db")
 DB_USER = os.getenv("POSTGRES_USER", "postgres")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_BASE_URL = os.getenv("API_BASE", "http://localhost:11434")
 
 # ---- Step 1: Load PDF via Docling ------------------------------------
 print("Loading PDF via Docling...")

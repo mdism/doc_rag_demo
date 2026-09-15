@@ -1,0 +1,10 @@
+docker run --name rag-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=rag_db -p 5432:5432 -d pgvector/pgvector:pg16
+docker run --name rag-phoenix -p 6006:6006 -p 4317:4317 -d arizephoenix/phoenix:latest
+docker exec -it rag-postgres psql -U postgres -d rag_db -c "CREATE EXTENSION IF NOT EXISTS vector;"
+python ingest.py
+$env:UV_LINK_MODE = "copy"
+uv sync
+ollama pull gemma3:latest
+ollama pull nomic-embed-text
+ollama pull llama3.1:8b
+

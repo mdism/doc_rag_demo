@@ -1,0 +1,18 @@
+search_the_knowledge_base_task:
+  description: >
+    Search the knowledge base and retrieve the most relevant passages to answer
+    this question: {question}
+  expected_output: >
+    A list of relevant text passages from the documents, each with enough context
+    to be understood on its own
+  agent: researcher
+
+using_the_retrieved_passages_task:
+  description: >
+    Using the retrieved passages, write a clear, accurate answer to the original
+    question: {question}. Only use information found in the retrieved passages --
+    if they don't contain enough information, say so explicitly.
+  expected_output: >
+    A direct, well-written answer to the question, grounded in the retrieved
+    context, with no fabricated information
+  agent: answer_synthesizer
