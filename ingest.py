@@ -99,17 +99,15 @@ if buffer_text:
 
 print(f"  -> {len(final_nodes)} final nodes after resizing")
 
-# Stamp every node with which source file it came from -- this is what
-# ref_doc_id was supposed to give us automatically, but our manual
-# merge/split step (Step 3) creates new TextNode objects that lose that
-# link. Setting it explicitly here means every chunk can always be traced
-# back to its source document, which matters once you ingest multiple PDFs.
+
 for node in final_nodes:
     node.metadata["source_file"] = SOURCE_NAME
 
 # ---- Step 4: Embed each node -------------------------------------------
 print(f"Embedding {len(final_nodes)} nodes via Ollama ({EMBED_MODEL})...")
-embed_model = OllamaEmbedding(model_name=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
+embed_model = OllamaEmbedding(model_name=EMBED_MODEL, base_url=OLLAMA_BASE_URL,
+                              client_kwargs={"headers": {"ngrok-skip-browser-warning": "true"},        "timeout": 300,
+},)
 
 for i, node in enumerate(final_nodes):
     node.embedding = embed_model.get_text_embedding(node.text)

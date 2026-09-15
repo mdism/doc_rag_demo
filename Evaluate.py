@@ -67,19 +67,22 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 if not OLLAMA_BASE_URL.startswith(("http://", "https://")):
     OLLAMA_BASE_URL = "http://" + OLLAMA_BASE_URL
 
-judge_llm = LangchainLLMWrapper(ChatOllama(model=JUDGE_MODEL, base_url=OLLAMA_BASE_URL, temperature=0))
-judge_embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model=JUDGE_EMBED_MODEL, base_url=OLLAMA_BASE_URL))
+judge_llm = LangchainLLMWrapper(ChatOllama(model=JUDGE_MODEL, 
+                                           base_url=OLLAMA_BASE_URL, temperature=0,
+                                           json_mode=True,
+                                           client_kwargs={"headers": {"ngrok-skip-browser-warning": "true"}},)
+                                           )
+judge_embeddings = LangchainEmbeddingsWrapper(OllamaEmbeddings(model=JUDGE_EMBED_MODEL, 
+                                                               base_url=OLLAMA_BASE_URL,
+                                                               client_kwargs={"headers": {"ngrok-skip-browser-warning": "true"}},)
+                                                               )
 
 # ---- Step 4: Run evaluation ----------------------------------------------
 print("Running RAGAs evaluation (this calls the judge LLM once per metric per row)...")
 from ragas.run_config import RunConfig
- 
-# Default RunConfig fires up to 16 concurrent requests with a 180s timeout --
-# fine for a hosted API, but a local CPU-only Ollama server can realistically
-# only handle one request at a time, and each can genuinely take a few
-# minutes. max_workers=1 serializes requests (no contention), timeout=600
-# gives each call room to actually finish instead of getting killed early.
-judge_run_config = RunConfig(timeout=600, max_workers=8)
+
+
+judge_run_config = RunConfig(timeout=1800, max_workers=1)
 
 results = evaluate(
     dataset=dataset,

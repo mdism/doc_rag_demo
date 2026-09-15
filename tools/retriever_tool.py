@@ -22,6 +22,10 @@ DB_USER = os.getenv("POSTGRES_USER", "postgres")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
+if not OLLAMA_BASE_URL.startswith(("http://", "https://")):
+    OLLAMA_BASE_URL = "http://" + OLLAMA_BASE_URL
+ 
+
 _reranker = SentenceTransformerRerank(
     model="cross-encoder/ms-marco-MiniLM-L-6-v2",
     top_n=FINAL_TOP_K,
@@ -42,7 +46,10 @@ class DocumentRetrieverTool(BaseTool):
     args_schema: type[BaseModel] = RetrieverInput
 
     def _run(self, query: str) -> str:
-        embed_model = OllamaEmbedding(model_name=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
+        embed_model = OllamaEmbedding(model_name=EMBED_MODEL, 
+                                      base_url=OLLAMA_BASE_URL,
+                                      client_kwargs={"headers": {"ngrok-skip-browser-warning": "true"},
+                                                    "timeout": 300,})
         vector_store = PGVectorStore.from_params(
             database=DB_NAME,
             host=DB_HOST,

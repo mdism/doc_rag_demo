@@ -1,4 +1,4 @@
-from crewai import Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task, LLM
 from crewai.project import CrewBase, agent, crew, task
 
 from tools.retriever_tool import DocumentRetrieverTool
@@ -6,7 +6,13 @@ from tools.retriever_tool import DocumentRetrieverTool
 # llama3.1:8b has genuine native tool-calling support in Ollama, unlike
 # gemma3 (which has none, on any tag). No forced litellm override needed
 # here -- native tool calling works correctly for this model out of the box.
-LLM_MODEL = "ollama/llama3.1:8b"
+# _llm = "ollama/gemma3:latest"
+_llm = LLM(
+    model="ollama/llama3.1:8b",
+    extra_headers={"ngrok-skip-browser-warning": "true"},
+    timeout=300,
+)
+ 
 
 
 @CrewBase
@@ -18,7 +24,7 @@ class DocRagDemoCrew:
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["researcher"],
-            llm=LLM_MODEL,
+            llm=_llm,
             tools=[DocumentRetrieverTool()],
             max_iter=5,
             allow_delegation=False,
@@ -29,7 +35,7 @@ class DocRagDemoCrew:
     def answer_synthesizer(self) -> Agent:
         return Agent(
             config=self.agents_config["answer_synthesizer"],
-            llm=LLM_MODEL,
+            llm=_llm,
             allow_delegation=False,
             verbose=True,
         )
