@@ -2,17 +2,38 @@ search_the_knowledge_base_task:
   description: >
     Search the knowledge base and retrieve the most relevant passages to answer
     this question: {question}
+
+    Preserve ALL specific details exactly as written in the source -- exact numbers,
+    percentages, currency amounts, day/time counts, section numbers, table names,
+    and named parties. Do not paraphrase or round figures. If a retrieved passage
+    contains a table, include the full table with its header row intact, not a
+    summary of it.
   expected_output: >
-    A list of relevant text passages from the documents, each with enough context
-    to be understood on its own
+    A list of relevant text passages from the documents, verbatim, each with enough
+    surrounding context to be understood on its own, including any table structure,
+    section numbers, and exact figures present in the source.
   agent: researcher
 
 using_the_retrieved_passages_task:
   description: >
-    Using the retrieved passages, write a clear, accurate answer to the original
+    Using the retrieved passages, write a precise, detailed answer to the original
     question: {question}. Only use information found in the retrieved passages --
     if they don't contain enough information, say so explicitly.
+
+    Requirements for a strong answer:
+    - Cite exact figures, dates, percentages, and amounts exactly as stated in the
+      source -- never round, approximate, or generalize a specific number.
+    - Reference the specific section, table, or clause number the information came
+      from (e.g. "per Table 5.1" or "under Section 11.4(a)") wherever the source
+      provides one.
+    - If the question involves a category, classification, or condition (e.g. an
+      employee type, a threshold, a tiered rule), state which specific category the
+      answer applies to -- do not give a single blended answer if the source
+      distinguishes between cases.
+    - Prefer being specific and slightly longer over being brief and vague. A
+      generic summary that omits the exact figures is not an acceptable answer.
   expected_output: >
-    A direct, well-written answer to the question, grounded in the retrieved
-    context, with no fabricated information
+    A precise, detailed answer grounded in the retrieved context, citing exact
+    figures and source sections/tables wherever available, with no fabricated
+    information and no unnecessary generalization.
   agent: answer_synthesizer

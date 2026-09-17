@@ -9,12 +9,9 @@ from llama_index.core.schema import NodeWithScore, QueryBundle
 
 EMBED_MODEL = "nomic-embed-text"
 EMBED_DIM = 768
-FETCH_TOP_K = 10     # wide net from vector search (fast, approximate)
-FINAL_TOP_K = 3       # narrowed down by the reranker (slower, precise)
+FETCH_TOP_K = 10
+FINAL_TOP_K = 3
 
-# Connection details -- default to localhost for local dev, overridden by
-# Docker Compose to use service names (e.g. "postgres", "ollama") when
-# running inside the container network.
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
 DB_NAME = os.getenv("POSTGRES_DB", "rag_db")
@@ -74,7 +71,6 @@ class DocumentRetrieverTool(BaseTool):
             for node, score in zip(result.nodes, result.similarities)
         ]
 
-        # Stage 2: cross-encoder reranking -- slower, precise, narrows to FINAL_TOP_K
         reranked = _reranker.postprocess_nodes(candidates, query_bundle=QueryBundle(query_str=query))
 
         formatted = []
