@@ -350,18 +350,7 @@ Full interactive documentation (Swagger/OpenAPI): **http://localhost:8000/docs**
 
 ---
 
-## 12. Supplementary Documentation
-
-Additional technical documents referenced from this README are in [`/doc`](./doc):
-- Architecture and design diagrams
-- Presentation deck
-- Additional implementation notes
-
-*(See repository `/doc` directory for the latest versions of these documents.)*
-
----
-
-## 13. Future Improvements
+## 12. Future Improvements
 
 - Full containerization of the FastAPI app + Ollama (a `Dockerfile` and an extended
   `docker-compose.yml` covering all four services were prototyped but deferred in favor of
