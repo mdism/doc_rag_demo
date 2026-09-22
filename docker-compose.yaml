@@ -8,7 +8,8 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data   # persists your ingested data across restarts
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -24,36 +25,17 @@ services:
       - "4317:4317"
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: rag-ollama
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
     ports:
-      - "11434:11434"
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
-      - ollama_models:/root/.ollama   # model downloads persist here
+      - openwebui_data:/app/backend/data
     restart: unless-stopped
-
-  app:
-    build: .
-    container_name: rag-app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      phoenix:
-        condition: service_started
-      ollama:
-        condition: service_started
-    environment:
-      POSTGRES_HOST: postgres      # service name, not localhost
-      POSTGRES_PORT: "5432"
-      POSTGRES_DB: rag_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      OLLAMA_BASE_URL: http://ollama:11434
-      PHOENIX_ENDPOINT: http://phoenix:6006/v1/traces
-    stdin_open: true   # keeps stdin open so `crewai run`'s {question} prompt works interactively
-    tty: true
 
 volumes:
   pgdata:
-  ollama_models:
+  openwebui_data:

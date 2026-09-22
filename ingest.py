@@ -1,11 +1,3 @@
-"""
-Full ingestion pipeline: PDF -> Docling -> split -> merge/resize -> embed -> PGVector
-
-Usable two ways:
-  - CLI:  python ingest.py path/to/file.pdf
-  - API:  imported and called by app.py's /ingest endpoint
-"""
-
 import os
 import re
 import sys
