@@ -8,3 +8,13 @@ ollama pull gemma3:latest
 ollama pull nomic-embed-text
 ollama pull llama3.1:8b
 
+curl -fsSL https://ollama.com/install.sh | sh
+export OLLAMA_HOST=0.0.0.0
+ollama serve &
+sleep 5
+curl http://127.0.0.1:11434/api/tags
+ollama pull llama3.1:8b
+ollama pull gemma3:latest
+ollama pull nomic-embed-text
+
+http://host.docker.internal:8000/v1
